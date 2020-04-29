@@ -11,11 +11,18 @@ import UIKit
 /* This app is using the subclass UITableViewController which has a lot
  of built in functionality that has taken care of the delegate & data source set-up */
 class TodoListViewController: UITableViewController {
+    let defaults = UserDefaults.standard // Define user defaults
+    
    var itemArray = ["FindMike", "Buy Eggs","Destroy Demogoron"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        /* Test if have any defaults set-up for our TotoList and if so update
+           the persistent defaults into memory */
+        if let items = defaults.array(forKey: "TodoListArray") as? [String] {
+            itemArray = items
+        }
     }
     
     //MARK - Tableview Datasource Methods
@@ -63,6 +70,8 @@ class TodoListViewController: UITableViewController {
             /* What will happen once the user has clicked Add new item in our UIAlert */
             /* append the new entered item to the array */
             self.itemArray.append(textField.text!)
+            /* save new item in persistent user defaults */
+            self.defaults.set(self.itemArray, forKey: "TodoListArray")
             /* must reload the table with the new data */
             self.tableView.reloadData()
             
