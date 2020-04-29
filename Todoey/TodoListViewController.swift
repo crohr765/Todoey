@@ -11,7 +11,7 @@ import UIKit
 /* This app is using the subclass UITableViewController which has a lot
  of built in functionality that has taken care of the delegate & data source set-up */
 class TodoListViewController: UITableViewController {
-    let itemArray = ["FindMike", "Buy Eggs","Destroy Demogoron"]
+   var itemArray = ["FindMike", "Buy Eggs","Destroy Demogoron"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -51,5 +51,36 @@ class TodoListViewController: UITableViewController {
         }
     }
 
+    //MARK - Add new items
+    
+    @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        var textField = UITextField() // Need to define here to expand the scope
+        
+        /* Create alert controller with title and style */
+        let alert = UIAlertController(title: "Add New Todoey Item", message: "", preferredStyle: .alert)
+        /* define button action to be created at bottom of alert box */
+        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+            /* What will happen once the user has clicked Add new item in our UIAlert */
+            /* append the new entered item to the array */
+            self.itemArray.append(textField.text!)
+            /* must reload the table with the new data */
+            self.tableView.reloadData()
+            
+        }
+        
+        /* Defines a textfield within the alert controller -
+           This is where the user enters a new todo item */
+        alert.addTextField { (alertTextField) in
+            alertTextField.placeholder = "Create new item"
+            /* save reference to alertTextField */
+            textField = alertTextField
+        }
+        
+        /* attaches an action to your alert controller */
+        alert.addAction(action)
+        
+        /* presents the alert */
+        present(alert, animated: true, completion: nil)
+    }
 }
 
