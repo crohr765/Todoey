@@ -13,14 +13,23 @@ import UIKit
 class TodoListViewController: UITableViewController {
     let defaults = UserDefaults.standard // Define user defaults
     
-   var itemArray = ["FindMike", "Buy Eggs","Destroy Demogoron"]
+   var itemArray = [Item]() // This is an array of the class Item and storage in memory of our item list
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         /* Test if have any defaults set-up for our TotoList and if so update
            the persistent defaults into memory */
-        if let items = defaults.array(forKey: "TodoListArray") as? [String] {
+        let newItem = Item() // Create a new instance of class item
+        newItem.title = "Find Mike"
+        itemArray.append(newItem)
+        let newItem2 = Item() // Create a new instance of class item
+        newItem2.title = "Buy Eggs"
+        itemArray.append(newItem2)
+        let newItem3 = Item() // Create a new instance of class item
+        newItem3.title = "Destroy Demogorgon"
+        itemArray.append(newItem3)
+        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
             itemArray = items
         }
     }
@@ -36,26 +45,31 @@ class TodoListViewController: UITableViewController {
     /* Declare cellForRowAtIndexPath here:
        This is called automatically to render the data for each cell,
        indexPath is the current row index that tableView is asking for and
-       then we return the cell with the data to be presented */
+       then we return the cell with the data to be presented.
+       This also is call when calling reloadData */
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         /* This function retrieves the protype cell object on the storyboard
             for a specific row or index */
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+        let item = itemArray[indexPath.row]
         /* This sets the textLabel of the cell object to the desired data contents */
-        cell.textLabel?.text = itemArray[indexPath.row]
+        cell.textLabel?.text = item.title
+        /* This sets the current state of the done checkmark for our view */
+        cell.accessoryType = item.done  == true ? .checkmark : .none
+   
         return cell
     }
     
     //MARK - Tableview Delegate Methods
+    /* activated when user selects a specific row */
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        /* Update state of done to the opposite in itemArray */
+        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+        /* reload the tableview to reflect the change */
+        tableView.reloadData()
+        
         /* Stop highlighting what was just selected */
         tableView.deselectRow(at: indexPath, animated: true)
-        /* This sets or deselects the checkmark for the cell selected */
-        if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark {
-            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-        } else {
-            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-        }
     }
 
     //MARK - Add new items
@@ -69,9 +83,13 @@ class TodoListViewController: UITableViewController {
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             /* What will happen once the user has clicked Add new item in our UIAlert */
             /* append the new entered item to the array */
-            self.itemArray.append(textField.text!)
+            let newItem = Item() // create a new instance of Item class
+            newItem.title = textField.text! // update the title, default of done will be set to false
+            self.itemArray.append(newItem)  // Add this new item to our itemArray
+            
             /* save new item in persistent user defaults */
             self.defaults.set(self.itemArray, forKey: "TodoListArray")
+            
             /* must reload the table with the new data */
             self.tableView.reloadData()
             
