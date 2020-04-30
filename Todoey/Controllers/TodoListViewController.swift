@@ -11,27 +11,27 @@ import UIKit
 /* This app is using the subclass UITableViewController which has a lot
  of built in functionality that has taken care of the delegate & data source set-up */
 class TodoListViewController: UITableViewController {
-    let defaults = UserDefaults.standard // Define user defaults
+   
     
    var itemArray = [Item]() // This is an array of the class Item and storage in memory of our item list
+   
+    /* Get the default FileManager that provides urls based on directory and domain
+       FileManager is a singleton
+       We want a path to the document directory for the userDomain home location
+     .first is referring to the 1st element of the array (Up to this point you can get the file path)
+     Then add .appendingPathComponent to add the path for your plist file
+     */
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Item.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        /* Test if have any defaults set-up for our TotoList and if so update
-           the persistent defaults into memory */
-        let newItem = Item() // Create a new instance of class item
-        newItem.title = "Find Mike"
-        itemArray.append(newItem)
-        let newItem2 = Item() // Create a new instance of class item
-        newItem2.title = "Buy Eggs"
-        itemArray.append(newItem2)
-        let newItem3 = Item() // Create a new instance of class item
-        newItem3.title = "Destroy Demogorgon"
-        itemArray.append(newItem3)
-        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
-            itemArray = items
-        }
+        
+        print(dataFilePath!)
+        
+        /* Load items stored in the item.plist file into itemArray */
+        loadItems()
+        
     }
     
     //MARK - Tableview Datasource Methods
@@ -65,8 +65,8 @@ class TodoListViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         /* Update state of done to the opposite in itemArray */
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
-        /* reload the tableview to reflect the change */
-        tableView.reloadData()
+        
+        saveItems()
         
         /* Stop highlighting what was just selected */
         tableView.deselectRow(at: indexPath, animated: true)
@@ -86,14 +86,9 @@ class TodoListViewController: UITableViewController {
             let newItem = Item() // create a new instance of Item class
             newItem.title = textField.text! // update the title, default of done will be set to false
             self.itemArray.append(newItem)  // Add this new item to our itemArray
+            self.saveItems()
             
-            /* save new item in persistent user defaults */
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
-            
-            /* must reload the table with the new data */
-            self.tableView.reloadData()
-            
-        }
+        } // end of AlertAction completion closure
         
         /* Defines a textfield within the alert controller -
            This is where the user enters a new todo item */
@@ -108,6 +103,38 @@ class TodoListViewController: UITableViewController {
         
         /* presents the alert */
         present(alert, animated: true, completion: nil)
+    } // end of addButtonPressed
+    
+    /* encode our itemArray and write to the item.plist file and reload the table view */
+    func saveItems() {
+        let encoder = PropertyListEncoder()
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        }
+        catch {
+            print("Error encoding itemArray, \(error)")
+        }
+        
+        tableView.reloadData()
     }
-}
+    
+    func loadItems()
+    {
+        /* Get the contents of url of our path to item.plist file
+            Use binding optional to ensure that only uses if have a valid path */
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            /* Pass in the data type of the object [Item] and the file path of where item.plist is located
+             to the decoder and read the data into our itemArray */
+            do {
+               itemArray = try decoder.decode([Item].self, from: data)
+            }
+            catch {
+              print("Error decoding itemArray, \(error)")
+            }
+        }
+    }
+    
+} // end of class
 
