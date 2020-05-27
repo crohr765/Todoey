@@ -10,7 +10,7 @@
 import UIKit
 import RealmSwift
 
-class CategoryViewController: UITableViewController {
+class CategoryViewController: SwipeTableViewController {
     
     /* try! is acceptable when using Realm
        Initialize a new data point to Realm */
@@ -23,11 +23,11 @@ class CategoryViewController: UITableViewController {
         super.viewDidLoad()
     
         print (FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
-        let currentdate = Date()
-        print("Date:",currentdate)
+        
         loadCategories()
+        
     }
-    
+        
     //MARK: - TableView Datasource Methods
     /* Declare numberOfRowsInSection here:
      This is called automatically before rendering the table view and
@@ -37,19 +37,25 @@ class CategoryViewController: UITableViewController {
            if it is nil return 1 (Nil Coalescing Operator) */
         return categories?.count ?? 1
     }
+    
+    
     /* Declare cellForRowAtIndexPath here:
         This is called automatically to render the data for each cell,
         indexPath is the current row index that tableView is asking for and
         then we return the cell with the data to be presented.
-        This also is called when executing reloadData */
+        This also is called when executing reloadData.
+        Changed the cells to SwipeTableViewCells -
+        Also had to change story board category cell - Identity Inspector
+        Class to SwipeTableViewCell and Module to SwipeCellKit */
      override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
          /* This function retrieves the protype cell object on the storyboard
-             for a specific row or index */
-         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
+             for a specific row or index - this calls super class SwipeTableViewController */
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
          /* This sets the textLabel of the cell object to the desired data contents as long as categories is not nil otherwise return No categories added message. */
          cell.textLabel?.text = categories?[indexPath.row].name ?? "No Categories Added Yet"
  
+        
          return cell
      }
     
@@ -77,6 +83,22 @@ class CategoryViewController: UITableViewController {
         tableView.reloadData()
     }
     
+    //MARK: Delete data item from Swipe
+    override func updateModel(at indexPath: IndexPath) {
+        
+           if let oldcategory = self.categories?[indexPath.row] {
+                   do {
+                       try self.realm.write {
+                           self.realm.delete(oldcategory)
+                       }
+                   }
+                   catch {
+                       print("Error deleting Category \(error)")
+                   }
+
+          }
+    }
+        
     //MARK: - Add New Categories
 
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -136,3 +158,4 @@ class CategoryViewController: UITableViewController {
         
     
 }
+

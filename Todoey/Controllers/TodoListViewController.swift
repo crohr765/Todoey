@@ -9,9 +9,8 @@
 import UIKit
 import RealmSwift
 
-/* This app is using the subclass UITableViewController which has a lot
- of built in functionality that has taken care of the delegate & data source set-up */
-class TodoListViewController: UITableViewController {
+/* This app is using the subclass SwipeTableViewController */
+class TodoListViewController: SwipeTableViewController {
     
     /* Establish an instance of Realm */
     let realm = try! Realm()
@@ -60,8 +59,8 @@ class TodoListViewController: UITableViewController {
        This also is call when calling reloadData */
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         /* This function retrieves the protype cell object on the storyboard
-            for a specific row or index */
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+            for a specific row or index -- calls super class SwipeTableViewController */
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         if let item = todoItems?[indexPath.row] {
             /* This sets the textLabel of the cell object to the desired data contents */
             cell.textLabel?.text = item.title
@@ -154,6 +153,19 @@ class TodoListViewController: UITableViewController {
         tableView.reloadData()
     }
     
+    /* Delete Item when swipe */
+    override func updateModel(at indexPath: IndexPath) {
+        if let item = todoItems?[indexPath.row] {
+            do {
+                try realm.write {
+                    realm.delete(item)
+                }
+            }
+            catch {
+              print("Error Deleting Item \(error)")
+            }
+        }
+    }
     
     
 } // end of class
