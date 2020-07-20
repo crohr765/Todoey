@@ -8,12 +8,18 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 /* This app is using the subclass SwipeTableViewController */
 class TodoListViewController: SwipeTableViewController {
+    /* Default colors for nav bar */
+    let BLUE_COLOR = "1D9BF6"
+    let WHITE_COLOR = "F5F5F5"
     
     /* Establish an instance of Realm */
     let realm = try! Realm()
+    /* Tried to color the outline of the searchBar like lesson showed but didn't work */
+    @IBOutlet weak var searchBar: UISearchBar!
     
     /* Results object is returned when query Realm and it will contain Item objects */
     var todoItems : Results<Item>?
@@ -37,11 +43,66 @@ class TodoListViewController: SwipeTableViewController {
            We want a path to the document directory for the userDomain home location
            for where our CoreData DB is located)
          */
-        print (FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+        //print (FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         
         /* Load all items from persistent data model */
         loadItems()
         
+        tableView.separatorStyle = .none
+        
+    }
+    
+    /* This will trigger just before User sees the view */
+    override func viewWillAppear(_ animated: Bool) {
+        
+        /* update title object with currently selected category name */
+        title = selectedCategory?.name
+        
+        /* Get selected category cell color */
+        guard let colorHexString = selectedCategory?.cellColor else { fatalError("No Cell Color available")}
+        /* Get complementary color of selected color */
+        let complementColor = UIColor.init(complementaryFlatColorOf: UIColor(hexString: colorHexString))!
+        
+        updateNavBar(withHexCode: colorHexString, hexCode: UIColor.hexValue(complementColor)())
+        
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        /* Set Nav Bar back to original coloring */
+        updateNavBar(withHexCode: BLUE_COLOR, hexCode: WHITE_COLOR)
+    }
+    
+    //MARK - Nav Bar Code set-up Methods
+    
+    /* colorHexString    - color to set the nav bar
+       objColorHexString - color to set the objects and title within nav bar */
+    func updateNavBar(withHexCode colorHexString : String, hexCode objColorHexString : String ) {
+        
+       guard let navBar = navigationController?.navigationBar else { fatalError("Navigational Controller does not exist")}
+        
+       if let colorHexCode = UIColor(hexString: colorHexString) {
+          /* Tints the color of the nav bar at top using desired color */
+          navBar.barTintColor = colorHexCode
+       }
+       else {
+          /* Tint nav bar to default color*/
+          navBar.barTintColor = UIColor(hexString: BLUE_COLOR)
+       }
+       
+       if let objColorHexCode = UIColor(hexString:  objColorHexString){
+          /* set interactive elements within nav bar to desired color */
+          navBar.tintColor = objColorHexCode
+          /* set title name in middle of navBar to desired color */
+          navBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor : objColorHexCode]
+       }
+       else {
+          let WhiteColorUItype = UIColor(hexString: WHITE_COLOR)
+          /* set interactive elements within nav bar to default color */
+          navBar.tintColor = WhiteColorUItype
+          /* set title name in middle of navBar to default */
+          navBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor : WhiteColorUItype!]
+       }
+
     }
     
     //MARK - Tableview Datasource Methods
@@ -61,12 +122,25 @@ class TodoListViewController: SwipeTableViewController {
         /* This function retrieves the protype cell object on the storyboard
             for a specific row or index -- calls super class SwipeTableViewController */
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
+        
+        /* Make sure we have a item that is not nil */
         if let item = todoItems?[indexPath.row] {
             /* This sets the textLabel of the cell object to the desired data contents */
             cell.textLabel?.text = item.title
             /* This sets the current state of the done checkmark for our view */
             cell.accessoryType = item.done  == true ? .checkmark : .none
+            
+            /* Start with category color */
+            /* Get a gradiant of this color based on percentage of total number of items
+               Force unwrap the selected category cell color and if it is not nil then darken
+               will be called */
+            if let color = UIColor.init(hexString: selectedCategory!.cellColor)?.darken(byPercentage: CGFloat(CGFloat(indexPath.row) / CGFloat(todoItems!.count))){
+                  cell.backgroundColor = color
+                  /* Make sure that the text contrast is correct for the color */
+                  cell.textLabel?.textColor = UIColor.init(contrastingBlackOrWhiteColorOn: color, isFlat: true)
+            }
         }
+    
         else {
             cell.textLabel?.text = "No Items Added"
         }

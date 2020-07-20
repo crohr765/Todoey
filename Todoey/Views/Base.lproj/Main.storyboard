@@ -79,13 +79,15 @@
                     <toolbarItems/>
                     <navigationItem key="navigationItem" title="Items" id="PKa-ri-Fzq">
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="fix-lw-7dY">
-                            <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <connections>
                                 <action selector="addButtonPressed:" destination="Qz9-EA-54g" id="uUT-sU-zgi"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
+                    <connections>
+                        <outlet property="searchBar" destination="IS0-Uh-BBs" id="omy-Sb-LyF"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="tyi-hW-1Tv" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>

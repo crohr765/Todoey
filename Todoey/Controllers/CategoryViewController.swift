@@ -9,12 +9,13 @@
 //import Foundation
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class CategoryViewController: SwipeTableViewController {
     
     /* try! is acceptable when using Realm
        Initialize a new data point to Realm */
-   let realm = try! Realm()
+    let realm = try! Realm()
     
     var categories : Results<Category>?  /* Results object is returned when query Realm and it will contain Category objects */
 
@@ -25,6 +26,8 @@ class CategoryViewController: SwipeTableViewController {
         print (FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         
         loadCategories()
+        
+        tableView.separatorStyle = .none
         
     }
         
@@ -50,13 +53,17 @@ class CategoryViewController: SwipeTableViewController {
      override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
          /* This function retrieves the protype cell object on the storyboard
              for a specific row or index - this calls super class SwipeTableViewController */
-        let cell = super.tableView(tableView, cellForRowAt: indexPath)
+         let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
-         /* This sets the textLabel of the cell object to the desired data contents as long as categories is not nil otherwise return No categories added message. */
-         cell.textLabel?.text = categories?[indexPath.row].name ?? "No Categories Added Yet"
- 
-        
-         return cell
+        /* This sets the textLabel of the cell object to the desired data contents as long as categories is not nil otherwise return No categories added message. */
+        cell.textLabel?.text = categories?[indexPath.row].name ?? "No Categories Added Yet"
+        /* sets background color but if nil defaults to system blue color */
+        cell.backgroundColor = UIColor(hexString: categories?[indexPath.row].cellColor ?? "007AFF")
+        /* Get complementary color of selected cell background */
+        let complementColor = UIColor.init(complementaryFlatColorOf: cell.backgroundColor)
+        /* set text color to complement the background */
+        cell.textLabel?.textColor = complementColor
+        return cell
      }
     
     //MARK: - Data Manipulation Methods
@@ -115,7 +122,9 @@ class CategoryViewController: SwipeTableViewController {
             let newcategory = Category()
             /* update the instance with name entered by user */
             newcategory.name = textField.text!
-        
+            /* get a random color as a hex string if valid */
+            newcategory.cellColor = UIColor.randomFlat().hexValue()
+   
             /* Save in data base and update tableview for user */
             self.save(category: newcategory)
         } // end of AlertAction completion closure
